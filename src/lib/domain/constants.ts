@@ -45,31 +45,6 @@ export type Level = keyof typeof LEVELS;
 export const DEPOSIT_TYPES = { NONE: "Không cần cọc", FIXED: "Cọc cố định", PERCENT: "Cọc theo %" } as const;
 export type DepositType = keyof typeof DEPOSIT_TYPES;
 
-export const TEAM_ROLES = { CAPTAIN: "Đội trưởng", TREASURER: "Thủ quỹ", MEMBER: "Thành viên" } as const;
-export type TeamRole = keyof typeof TEAM_ROLES;
-
-export const RSVP = { YES: "Có đi", NO: "Không đi", MAYBE: "Chưa chắc" } as const;
-export type Rsvp = keyof typeof RSVP;
-
-export const FUND_KINDS = {
-  CHARGE: "Khoản phải đóng",
-  PAYMENT: "Thành viên đóng tiền",
-  INCOME: "Thu khác",
-  EXPENSE: "Chi",
-} as const;
-export type FundKind = keyof typeof FUND_KINDS;
-
-export const CHARGE_CATEGORIES = { MONTHLY: "Quỹ tháng", MATCH: "Tiền trận", OTHER: "Khác" } as const;
-export const EXPENSE_CATEGORIES = {
-  PITCH: "Tiền sân",
-  WATER: "Nước",
-  KIT: "Áo đấu",
-  BALL: "Bóng, dụng cụ",
-  PARTY: "Liên hoan",
-  OTHER: "Khác",
-} as const;
-export const INCOME_CATEGORIES = { SPONSOR: "Tài trợ", DONATION: "Ủng hộ", OTHER: "Khác" } as const;
-
 export const COST_SPLIT = {
   HALF: "Chia đôi tiền sân",
   HOST: "Đội đăng trả sân",

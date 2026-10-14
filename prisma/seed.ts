@@ -1,9 +1,10 @@
 /* Dữ liệu mẫu cho môi trường local. Tên sân/đội/người đều là hư cấu. */
+// Chạy `npm run db:reset` (do người dùng tự chạy) để tạo lại DB và nạp dữ liệu này.
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { pick } from "./seed-utils";
 import { seedVenues } from "./seed-venues";
-import { seedTeams } from "./seed-teams";
+import { seedMatches } from "./seed-matches";
 
 export const db = new PrismaClient();
 /** Mật khẩu chung cho mọi tài khoản mẫu (chỉ dùng ở local) */
@@ -12,17 +13,15 @@ export const DEMO_PASSWORD = "chonsan123";
 
 async function seedUsers() {
   await db.$transaction([
-    db.report.deleteMany(), db.teamRating.deleteMany(), db.matchRequest.deleteMany(), db.matchPost.deleteMany(),
-    db.playerRequest.deleteMany(), db.playerPost.deleteMany(), db.fundAuditLog.deleteMany(), db.fundTransaction.deleteMany(),
-    db.attendance.deleteMany(), db.teamEvent.deleteMany(), db.review.deleteMany(), db.booking.deleteMany(), db.teamMember.deleteMany(),
-    db.team.deleteMany(), db.deal.deleteMany(), db.venueHoliday.deleteMany(), db.priceRule.deleteMany(), db.pitchLink.deleteMany(),
+    db.report.deleteMany(), db.matchRating.deleteMany(), db.matchRequest.deleteMany(), db.matchPost.deleteMany(),
+    db.playerRequest.deleteMany(), db.playerPost.deleteMany(), db.review.deleteMany(), db.booking.deleteMany(), db.deal.deleteMany(), db.venueHoliday.deleteMany(), db.priceRule.deleteMany(), db.pitchLink.deleteMany(),
     db.pitch.deleteMany(), db.venueStaff.deleteMany(), db.venue.deleteMany(), db.notification.deleteMany(), db.user.deleteMany(),
   ]);
   const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
   const mkUser = (email: string, name: string, phone: string, extra: object = {}) =>
     db.user.create({ data: { email, name, phone, passwordHash, ...extra } });
 
-  const admin = await mkUser("admin@chonsan.local", "Quản trị ChọnSân", "0900000000", { role: "ADMIN" });
+  const admin = await mkUser("admin@chonsan.local", "Quản trị ChonSan", "0900000000", { role: "ADMIN" });
   const owner = await mkUser("chusan@chonsan.local", "Trần Văn Sân", "0912000001", { province: "Hà Nội", district: "Đống Đa" });
   const owner2 = await mkUser("chusan2@chonsan.local", "Lê Thị Cỏ", "0912000002", { province: "TP. Hồ Chí Minh", district: "Quận 11" });
   const staff = await mkUser("nhanvien@chonsan.local", "Phạm Nhân Viên", "0912000003");
@@ -40,7 +39,7 @@ export type Users = Awaited<ReturnType<typeof seedUsers>>;
 async function main() {
   const users = await seedUsers();
   await seedVenues(db, users);
-  await seedTeams(db, users);
+  await seedMatches(db, users);
   console.log(`✔ Đã nạp dữ liệu mẫu. Mật khẩu mọi tài khoản: xem DEMO_PASSWORD trong prisma/seed.ts`);
 }
 

@@ -18,7 +18,7 @@ export default async function PlayerPostPage({ params, searchParams }: { params:
   const sp = await searchParams;
   const post = await db.playerPost.findUnique({
     where: { id },
-    include: { author: { select: { id: true, name: true, phone: true } }, team: true, requests: { include: { user: { select: { name: true, phone: true, skillLevel: true, position: true } } }, orderBy: { createdAt: "asc" } } },
+    include: { author: { select: { id: true, name: true, phone: true } }, requests: { include: { user: { select: { name: true, phone: true, skillLevel: true, position: true } } }, orderBy: { createdAt: "asc" } } },
   });
   if (!post || post.status === "HIDDEN") notFound();
   const user = await getCurrentUser();
@@ -30,7 +30,7 @@ export default async function PlayerPostPage({ params, searchParams }: { params:
       <Flash searchParams={sp} />
       <div className="card">
         <div className="flex items-start justify-between gap-2">
-          <div><p className="muted">Tìm người đá ghép · {post.team ? <Link className="text-brand-700" href={`/doi/${post.team.slug}`}>{post.team.name}</Link> : post.author.name}</p>
+          <div><p className="muted">Tìm người đá ghép · {post.teamName ? `${post.teamName} (${post.author.name})` : post.author.name}</p>
             <h1 className="h1">Cần {post.needed} người {post.position && <span className="text-lg font-normal text-gray-500">· {post.position}</span>}</h1></div>
           <Badge tone={post.status === "OPEN" ? "green" : "gray"}>{post.status === "OPEN" ? `Còn ${post.needed - accepted.length} chỗ` : post.status === "FULL" ? "Đã đủ người" : "Đã đóng"}</Badge>
         </div>

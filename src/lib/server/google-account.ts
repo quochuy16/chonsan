@@ -13,7 +13,7 @@ export async function resolveGoogleAccount(p: GoogleProfile, linkToUserId?: stri
   const byGoogle = await db.user.findUnique({ where: { googleId: p.sub } });
 
   if (linkToUserId) {
-    if (byGoogle && byGoogle.id !== linkToUserId) return { error: "Tài khoản Google này đã liên kết với một tài khoản ChọnSân khác" };
+    if (byGoogle && byGoogle.id !== linkToUserId) return { error: "Tài khoản Google này đã liên kết với một tài khoản ChonSan khác" };
     const user = await db.user.update({ where: { id: linkToUserId }, data: { googleId: p.sub } });
     return { user, isNew: false };
   }

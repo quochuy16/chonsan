@@ -5,9 +5,9 @@ import "./globals.css";
 // khu quản trị ở (admin)/quan-tri — hai giao diện tách biệt hoàn toàn.
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.SITE_URL ?? "http://localhost:3000"),
-  title: { default: "ChọnSân – Đặt sân bóng, tìm kèo, quản lý đội", template: "%s · ChọnSân" },
+  title: { default: "ChonSan – Đặt sân bóng, cho thuê sân, tìm kèo", template: "%s · ChonSan" },
   description:
-    "Tìm và đặt sân bóng đá gần bạn, xem giá theo khung giờ, ghép kèo tìm đối, tìm người đá ghép và quản lý quỹ đội bóng phủi.",
+    "Tìm và đặt sân bóng đá gần bạn, xem giá theo khung giờ, ghép kèo tìm đối và tìm người đá ghép.",
 };
 
 export const viewport: Viewport = { themeColor: "#039855" };

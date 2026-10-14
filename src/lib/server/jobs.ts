@@ -7,7 +7,6 @@ import { formatDateTime, formatTime } from "@/lib/domain/time";
 export interface JobResult {
   expired: number;
   bookingReminders: number;
-  eventReminders: number;
 }
 
 /**
@@ -47,24 +46,5 @@ export async function runScheduledJobs(now: Date = new Date()): Promise<JobResul
     await notify(b.userId, `⏰ ${formatTime(b.start)} hôm nay: ${b.pitch.venue.name}`, `${b.pitch.name} · ${b.pitch.venue.address}`, `/dat-san/${b.code}`);
   }
 
-  // 4. Nhắc buổi đá của đội (trừ người đã báo "Không đi")
-  const events = await db.teamEvent.findMany({
-    where: { finished: false, reminderSentAt: null, start: { gt: now, lte: horizon } },
-    include: { team: true, attendances: true },
-  });
-  let eventReminders = 0;
-  for (const e of events) {
-    if (!isReminderDue(e.start, now)) continue;
-    const res = await db.teamEvent.updateMany({ where: { id: e.id, reminderSentAt: null }, data: { reminderSentAt: now } });
-    if (res.count === 0) continue;
-    eventReminders++;
-    const members = await db.teamMember.findMany({ where: { teamId: e.teamId, active: true, userId: { not: null } } });
-    const declined = new Set(e.attendances.filter((a) => a.response === "NO").map((a) => a.memberId));
-    for (const m of members) {
-      if (declined.has(m.id)) continue;
-      const answered = e.attendances.some((a) => a.memberId === m.id);
-      await notify(m.userId, `⏰ ${e.team.name}: ${e.title} lúc ${formatTime(e.start)}`, answered ? e.venueText : `${e.venueText} · Bạn chưa điểm danh!`, `/doi/${e.team.slug}/lich`);
-    }
-  }
-  return { expired, bookingReminders, eventReminders };
+  return { expired, bookingReminders };
 }

@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 import { decodeJwt } from "jose";
-import { EnvHttpProxyAgent, fetch as proxyFetch } from "undici";
+import { externalFetch } from "./http";
 
 // Đăng nhập Google: OAuth 2.0 Authorization Code + PKCE (không dùng thư viện ngoài).
 // ID token lấy trực tiếp từ token endpoint của Google qua HTTPS kèm client secret, nên theo
@@ -15,10 +15,6 @@ export interface GoogleConfig {
   clientSecret: string;
   redirectUri: string;
 }
-
-// fetch có sẵn của Node bỏ qua HTTPS_PROXY; mạng công ty cần đi qua proxy. Agent này tự dùng proxy
-// khi có biến HTTP(S)_PROXY và tôn trọng NO_PROXY; không có biến thì kết nối thẳng.
-const agent = new EnvHttpProxyAgent();
 
 export function googleConfig(): GoogleConfig | null {
   const clientId = process.env.GOOGLE_CLIENT_ID;
@@ -80,9 +76,7 @@ export function validateClaims(claims: Record<string, unknown>, clientId: string
 export async function exchangeCode(cfg: GoogleConfig, code: string, verifier: string): Promise<GoogleProfile | string> {
   let res;
   try {
-    res = await proxyFetch(GOOGLE_TOKEN_URL, {
-      dispatcher: agent,
-      signal: AbortSignal.timeout(15_000),
+    res = await externalFetch(GOOGLE_TOKEN_URL, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({

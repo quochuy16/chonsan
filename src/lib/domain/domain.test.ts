@@ -3,7 +3,6 @@ import { addDays, dowOfKey, formatTime, fromVN, vnDateKey, vnParts } from "./tim
 import { formatVND } from "./money";
 import { depositFor, hourlyPriceAt, quote, type PriceRuleInput } from "./pricing";
 import { canCustomerCancel, canTransition, conflictingPitchIds, overlaps } from "./schedule";
-import { splitEvenly, summarizeFund } from "./fund";
 import { computeReputation } from "./reputation";
 import { buildVietQR, crc16, sanitizeTransferNote } from "./vietqr";
 import { normalizePhone, slugify } from "./text";
@@ -91,28 +90,6 @@ describe("schedule", () => {
     const start = fromVN("2026-10-14", 18 * 60);
     expect(canCustomerCancel(start, 12, fromVN("2026-10-14", 5 * 60))).toBe(true);
     expect(canCustomerCancel(start, 12, fromVN("2026-10-14", 7 * 60))).toBe(false);
-  });
-});
-
-describe("fund", () => {
-  it("chia tiền trận làm tròn lên nghìn", () => {
-    expect(splitEvenly(1000000, 14)).toBe(72000);
-    expect(splitEvenly(500000, 0)).toBe(0);
-  });
-  it("số dư và công nợ", () => {
-    const d = new Date();
-    const s = summarizeFund([
-      { kind: "CHARGE", amount: 200000, memberId: "a", date: d },
-      { kind: "CHARGE", amount: 200000, memberId: "b", date: d },
-      { kind: "PAYMENT", amount: 200000, memberId: "a", date: d },
-      { kind: "PAYMENT", amount: 300000, memberId: "b", date: d },
-      { kind: "INCOME", amount: 100000, memberId: null, date: d },
-      { kind: "EXPENSE", amount: 450000, memberId: null, date: d },
-    ]);
-    expect(s.balance).toBe(150000);
-    expect(s.members.a.debt).toBe(0);
-    expect(s.members.b.debt).toBe(-100000);
-    expect(s.totalDebt).toBe(0);
   });
 });
 

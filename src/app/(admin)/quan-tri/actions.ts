@@ -86,14 +86,7 @@ export async function adminCancelBookingAction(bookingId: string, form: FormData
   done(back, `Đã hủy đơn ${b.code}`);
 }
 
-// ---- Đội & kèo ----
-export async function toggleTeamPublicAction(teamId: string, form: FormData) {
-  await requireAdmin();
-  const t = await db.team.findUniqueOrThrow({ where: { id: teamId } });
-  await db.team.update({ where: { id: teamId }, data: { isPublic: !t.isPublic } });
-  done(backFrom(form, "/quan-tri/doi"), t.isPublic ? `Đã ẩn trang công khai của ${t.name}` : `Đã hiện lại ${t.name}`);
-}
-
+// ---- Kèo ----
 export async function setPostHiddenAction(kind: "MATCH" | "PLAYER", postId: string, hidden: boolean, form: FormData) {
   await requireAdmin();
   const back = backFrom(form, "/quan-tri/keo");
@@ -101,11 +94,11 @@ export async function setPostHiddenAction(kind: "MATCH" | "PLAYER", postId: stri
   if (kind === "MATCH") {
     const p = await db.matchPost.findUniqueOrThrow({ where: { id: postId } });
     await db.matchPost.update({ where: { id: postId }, data: { status: hidden ? "HIDDEN" : restore(p.start) } });
-    if (hidden) await notify(p.authorId, "Bài kèo của bạn đã bị ẩn", "Bài vi phạm quy định cộng đồng ChọnSân (vd: cá cược).", "/keo");
+    if (hidden) await notify(p.authorId, "Bài kèo của bạn đã bị ẩn", "Bài vi phạm quy định cộng đồng ChonSan (vd: cá cược).", "/keo");
   } else {
     const p = await db.playerPost.findUniqueOrThrow({ where: { id: postId } });
     await db.playerPost.update({ where: { id: postId }, data: { status: hidden ? "HIDDEN" : restore(p.start) } });
-    if (hidden) await notify(p.authorId, "Bài tìm người của bạn đã bị ẩn", "Bài vi phạm quy định cộng đồng ChọnSân.", "/keo?tab=nguoi");
+    if (hidden) await notify(p.authorId, "Bài tìm người của bạn đã bị ẩn", "Bài vi phạm quy định cộng đồng ChonSan.", "/keo?tab=nguoi");
   }
   done(back, hidden ? "Đã ẩn bài" : "Đã hiện lại bài");
 }
@@ -120,7 +113,7 @@ export async function resolveReportAction(reportId: string, action: "DISMISS" | 
     if (r.targetType === "MATCH_POST") await db.matchPost.update({ where: { id: r.targetId }, data: { status: "HIDDEN" } });
     else if (r.targetType === "PLAYER_POST") await db.playerPost.update({ where: { id: r.targetId }, data: { status: "HIDDEN" } });
     else if (r.targetType === "VENUE") await db.venue.update({ where: { id: r.targetId }, data: { status: "REJECTED" } });
-    else if (r.targetType === "TEAM") await db.team.update({ where: { id: r.targetId }, data: { isPublic: false } });
+
   }
   if (action === "BAN") {
     const authorId =

@@ -12,15 +12,3 @@ export async function getVenueAccess(venueId: string, user: CurrentUser | null) 
   return { venue, isOwner: isOwner || isAdmin, isStaff };
 }
 
-export async function getMembership(teamId: string, userId: string | undefined) {
-  if (!userId) return null;
-  return db.teamMember.findFirst({ where: { teamId, userId, active: true } });
-}
-
-export function canManageTeam(role: string | undefined) {
-  return role === "CAPTAIN";
-}
-
-export function canManageFund(role: string | undefined) {
-  return role === "CAPTAIN" || role === "TREASURER";
-}

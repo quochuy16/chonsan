@@ -16,7 +16,7 @@ export default async function CompleteProfilePage({ searchParams }: { searchPara
   return (
     <div className="container-page max-w-md py-10">
       <h1 className="h1 mb-1">Còn một bước nữa</h1>
-      <p className="muted mb-6">Chủ sân và đội bạn cần số điện thoại để liên hệ khi bạn đặt sân hoặc chốt kèo.</p>
+      <p className="muted mb-6">Chủ sân và đội đối cần số điện thoại để liên hệ khi bạn đặt sân hoặc chốt kèo.</p>
       <Flash searchParams={sp} />
       <form action={completeProfileAction} className="card space-y-4">
         <input type="hidden" name="next" value={next} />
@@ -25,11 +25,11 @@ export default async function CompleteProfilePage({ searchParams }: { searchPara
         <div>
           <label className="label" htmlFor="phone">Số điện thoại</label>
           <input id="phone" name="phone" type="tel" className="input" required placeholder="09xxxxxxxx" autoComplete="tel" />
-          <p className="mt-1 text-xs text-gray-500">Chỉ hiện cho chủ sân bạn đặt và đội bạn đã chốt kèo.</p>
+          <p className="mt-1 text-xs text-gray-500">Chỉ hiện cho chủ sân bạn đặt và người đã chốt kèo với bạn.</p>
         </div>
         <label className="flex items-start gap-2 text-sm text-gray-600">
           <input type="checkbox" name="agree" required className="mt-1" />
-          <span>Tôi đồng ý với <Link href="/chinh-sach" className="text-brand-700 underline">chính sách quyền riêng tư</Link> và cho phép ChọnSân xử lý dữ liệu cá nhân để cung cấp dịch vụ.</span>
+          <span>Tôi đồng ý với <Link href="/chinh-sach" className="text-brand-700 underline">chính sách quyền riêng tư</Link> và cho phép ChonSan xử lý dữ liệu cá nhân để cung cấp dịch vụ.</span>
         </label>
         <SubmitButton className="btn-primary w-full">Hoàn tất</SubmitButton>
       </form>

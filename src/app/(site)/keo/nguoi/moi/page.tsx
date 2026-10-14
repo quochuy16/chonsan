@@ -1,4 +1,3 @@
-import { db } from "@/lib/server/db";
 import { requireUser } from "@/lib/server/auth";
 import { LEVELS } from "@/lib/domain/constants";
 import { todayKey } from "@/lib/domain/time";
@@ -12,13 +11,13 @@ export const metadata = { title: "Đăng tìm người đá ghép" };
 export default async function NewPlayerPost({ searchParams }: { searchParams: Promise<{ ok?: string; error?: string }> }) {
   const sp = await searchParams;
   const user = await requireUser("/keo/nguoi/moi");
-  const teams = await db.teamMember.findMany({ where: { userId: user.id, active: true }, include: { team: true } });
+
   return (
     <div className="container-page max-w-2xl py-8">
       <h1 className="h1 mb-4">Tìm người đá ghép</h1>
       <Flash searchParams={sp} />
       <form action={createPlayerPostAction} className="card space-y-3">
-        <div><label className="label" htmlFor="teamId">Đăng cho</label><select id="teamId" name="teamId" className="input"><option value="">Cá nhân / nhóm bạn</option>{teams.map((m) => <option key={m.teamId} value={m.teamId}>{m.team.name}</option>)}</select></div>
+        <div><label className="label" htmlFor="teamName">Tên đội / nhóm (không bắt buộc)</label><input id="teamName" name="teamName" maxLength={60} className="input" placeholder="Bỏ trống nếu đăng cá nhân" /></div>
         <div className="grid grid-cols-2 gap-3">
           <div><label className="label" htmlFor="date">Ngày</label><input id="date" name="date" type="date" min={todayKey()} required className="input" /></div>
           <div><label className="label" htmlFor="time">Giờ</label><input id="time" name="time" type="time" step={1800} defaultValue="19:00" required className="input" /></div>

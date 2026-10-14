@@ -41,7 +41,7 @@ export async function deleteAccountAction(form: FormData) {
   if (await db.venue.count({ where: { ownerId: user.id } })) fail("/tai-khoan", "Bạn đang sở hữu cụm sân. Hãy liên hệ quản trị viên để chuyển hoặc đóng sân trước.");
   await db.$transaction([
     db.notification.deleteMany({ where: { userId: user.id } }),
-    db.teamMember.updateMany({ where: { userId: user.id }, data: { userId: null, active: false } }),
+
     db.user.update({
       where: { id: user.id },
       data: { name: "Người dùng đã xóa", email: `deleted-${randomCode(10)}@chonsan.invalid`, phone: "", passwordHash: "", googleId: null, banned: true, province: null, district: null, position: null },

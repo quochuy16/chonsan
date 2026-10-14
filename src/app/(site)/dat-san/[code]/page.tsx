@@ -11,6 +11,7 @@ import { BookingStatusBadge } from "@/components/ui";
 import { SubmitButton } from "@/components/submit-button";
 import { VietQR } from "@/components/vietqr";
 import { cancelMyBookingAction, reviewAction } from "./actions";
+import { ownerUrl } from "@/lib/server/urls";
 
 export const metadata = { title: "Chi tiết đặt sân" };
 
@@ -21,7 +22,7 @@ export default async function BookingPage({ params, searchParams }: { params: Pr
   await completePastBookings();
   const b = await db.booking.findUnique({
     where: { code },
-    include: { pitch: { include: { venue: { include: { staff: true } } } }, review: true, team: true },
+    include: { pitch: { include: { venue: { include: { staff: true } } } }, review: true },
   });
   if (!b) notFound();
   const venue = b.pitch.venue;
@@ -44,7 +45,7 @@ export default async function BookingPage({ params, searchParams }: { params: Pr
           <div><dt className="muted">Giờ</dt><dd className="font-semibold">{formatTime(b.start)} – {formatTime(b.end)}</dd></div>
           <div><dt className="muted">Tổng tiền</dt><dd className="font-bold text-brand-700">{formatVND(b.totalPrice)}</dd></div>
           <div><dt className="muted">Cọc</dt><dd>{b.depositAmount ? `${formatVND(b.depositAmount)} · ${b.depositPaid ? "✅ đã nhận" : "chưa nhận"}` : "Không cần"}</dd></div>
-          {b.team && <div><dt className="muted">Đội</dt><dd>{b.team.name}</dd></div>}
+
           {series > 1 && <div><dt className="muted">Đặt cố định</dt><dd>{series} buổi hằng tuần</dd></div>}
           {b.note && <div className="col-span-2"><dt className="muted">Ghi chú</dt><dd>{b.note}</dd></div>}
           <div className="col-span-2"><dt className="muted">Liên hệ chủ sân</dt><dd><a className="text-brand-700" href={`tel:${venue.phone}`}>{venue.phone}</a></dd></div>
@@ -81,7 +82,7 @@ export default async function BookingPage({ params, searchParams }: { params: Pr
           </form>
         )}
         <Link href="/tai-khoan" className="btn-secondary">Lịch đặt của tôi</Link>
-        {isStaff && <Link href={`/chu-san/${venue.id}`} className="btn-secondary">Về lịch sân</Link>}
+        {isStaff && <a href={ownerUrl(`/chu-san/${venue.id}`)} className="btn-secondary">Về lịch sân ↗</a>}
       </div>
     </div>
   );

@@ -4,16 +4,24 @@ import { db } from "@/lib/server/db";
 import { createSession, destroySession, hashPassword, verifyPassword } from "@/lib/server/auth";
 import { fail, str } from "@/lib/server/flash";
 import { isValidPhone, normalizePhone } from "@/lib/domain/text";
+import { OWNER_LOGIN, OWNER_REGISTER, isOwnerPath } from "@/lib/server/urls";
 
 function safeNext(next: string) {
   return next.startsWith("/") && !next.startsWith("//") ? next : "/";
+}
+
+/** Đăng nhập/đăng ký từ web Chủ sân (next = /chu-san…) thì báo lỗi ngay trên trang của web Chủ sân */
+function authPage(kind: "login" | "register", next: string) {
+  const owner = isOwnerPath(next);
+  const path = kind === "login" ? (owner ? OWNER_LOGIN : "/dang-nhap") : owner ? OWNER_REGISTER : "/dang-ky";
+  return `${path}?next=${encodeURIComponent(next)}`;
 }
 
 export async function loginAction(form: FormData) {
   const email = str(form, "email").toLowerCase();
   const password = str(form, "password");
   const next = safeNext(str(form, "next"));
-  const back = `/dang-nhap?next=${encodeURIComponent(next)}`;
+  const back = authPage("login", next);
   const user = await db.user.findUnique({ where: { email } });
   if (user && !user.passwordHash && user.googleId) fail(back, "Tài khoản này đăng ký bằng Google — hãy bấm \"Tiếp tục với Google\"");
   if (!user || !(await verifyPassword(password, user.passwordHash))) fail(back, "Email hoặc mật khẩu không đúng");
@@ -28,7 +36,7 @@ export async function registerAction(form: FormData) {
   const phone = normalizePhone(str(form, "phone"));
   const password = str(form, "password");
   const next = safeNext(str(form, "next"));
-  const back = `/dang-ky?next=${encodeURIComponent(next)}`;
+  const back = authPage("register", next);
   if (name.length < 2) fail(back, "Vui lòng nhập họ tên");
   if (!/^\S+@\S+\.\S+$/.test(email)) fail(back, "Email không hợp lệ");
   if (!isValidPhone(phone)) fail(back, "Số điện thoại cần 10 số, bắt đầu bằng 0");
@@ -45,4 +53,9 @@ export async function registerAction(form: FormData) {
 export async function logoutAction() {
   await destroySession();
   redirect("/");
+}
+
+export async function ownerLogoutAction() {
+  await destroySession();
+  redirect(OWNER_LOGIN);
 }

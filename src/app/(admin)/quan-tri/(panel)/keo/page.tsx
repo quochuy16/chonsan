@@ -29,8 +29,8 @@ export default async function PostsAdmin({ searchParams }: { searchParams: Promi
   const [total, rows] = tab === "doi"
     ? await Promise.all([
         db.matchPost.count({ where: { ...status, ...q } }),
-        db.matchPost.findMany({ where: { ...status, ...q }, skip, take, orderBy: { createdAt: "desc" }, include: { team: true, author: { select: { id: true, name: true } }, _count: { select: { requests: true } } } }),
-      ]).then(([t, r]) => [t, r.map((p) => ({ id: p.id, kind: "MATCH" as const, href: `/keo/${p.id}`, title: `${p.team.name} tìm đối sân ${p.pitchSize}`, extra: `${p._count.requests} đội hỏi`, author: p.author, start: p.start, venueText: p.venueText, district: p.district, note: p.note, status: p.status }))] as const)
+        db.matchPost.findMany({ where: { ...status, ...q }, skip, take, orderBy: { createdAt: "desc" }, include: { author: { select: { id: true, name: true } }, _count: { select: { requests: true } } } }),
+      ]).then(([t, r]) => [t, r.map((p) => ({ id: p.id, kind: "MATCH" as const, href: `/keo/${p.id}`, title: `${p.teamName} tìm đối sân ${p.pitchSize}`, extra: `${p._count.requests} đội hỏi`, author: p.author, start: p.start, venueText: p.venueText, district: p.district, note: p.note, status: p.status }))] as const)
     : await Promise.all([
         db.playerPost.count({ where: { ...status, ...q } }),
         db.playerPost.findMany({ where: { ...status, ...q }, skip, take, orderBy: { createdAt: "desc" }, include: { author: { select: { id: true, name: true } }, _count: { select: { requests: true } } } }),

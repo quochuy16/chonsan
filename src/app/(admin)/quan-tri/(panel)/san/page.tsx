@@ -9,6 +9,7 @@ import { vnDateKey } from "@/lib/domain/time";
 import { ActionButton } from "../../_components/admin-form";
 import { DataTable, PageHeader, Pager, Pill, btnDanger, btnDark, btnLight, currentUrl, filterInput } from "../../_components/ui";
 import { setPlanAction, setVenueStatusAction, toggleVerifiedAction } from "../../actions";
+import { ownerUrl } from "@/lib/server/urls";
 
 export const metadata = { title: "Sân" };
 type SP = { q?: string; status?: string; province?: string; plan?: string; page?: string; ok?: string; error?: string };
@@ -62,7 +63,7 @@ export default async function VenuesAdmin({ searchParams }: { searchParams: Prom
                   <ActionButton action={toggleVerifiedAction.bind(null, v.id)} back={back} label={v.verified ? "Bỏ xác minh" : "Xác minh"} className={btnLight} />
                   <ActionButton action={setPlanAction.bind(null, v.id, v.plan === "PRO" ? "FREE" : "PRO")} back={back} label={v.plan === "PRO" ? "Về Miễn phí" : "Lên Pro"} className={btnLight} confirm={v.plan === "PRO" ? undefined : `Bật gói Pro cho ${v.name}? (Xác nhận chủ sân đã chuyển khoản)`} />
                   <Link href={`/san/${v.slug}`} target="_blank" className={btnLight}>Xem ↗</Link>
-                  <Link href={`/chu-san/${v.id}`} target="_blank" className={btnLight}>Quản lý ↗</Link>
+                  <a href={ownerUrl(`/chu-san/${v.id}`)} target="_blank" rel="noopener" className={btnLight}>Quản lý ↗</a>
                 </div>
               </td>
             </tr>

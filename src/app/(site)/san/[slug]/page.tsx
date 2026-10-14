@@ -13,6 +13,7 @@ import { Badge, Stars } from "@/components/ui";
 import { VenueMap } from "@/components/venue-map";
 import { BookingForm } from "./booking-form";
 import { createBookingAction, reportVenueAction } from "./actions";
+import { ownerUrl } from "@/lib/server/urls";
 
 type SP = { date?: string; pitch?: string; start?: string; error?: string; ok?: string };
 
@@ -33,7 +34,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!v) return {};
   return {
     title: `${v.name} – ${v.district}, ${v.province}`,
-    description: `${v.name}, ${v.address}, ${v.district}. Bảng giá theo khung giờ, giờ còn trống, đặt sân online trên ChọnSân.`,
+    description: `${v.name}, ${v.address}, ${v.district}. Bảng giá theo khung giờ, giờ còn trống, đặt sân online trên ChonSan.`,
   };
 }
 
@@ -49,11 +50,11 @@ export default async function VenuePage({ params, searchParams }: { params: Prom
   const today = todayKey();
   const date = sp.date && isDateKey(sp.date) ? sp.date : today;
   const dates = Array.from({ length: 14 }, (_, i) => addDays(today, i));
-  const [bookings, links, deals, teams] = await Promise.all([
+  const [bookings, links, deals] = await Promise.all([
     bookingsForDay(venue.id, date),
     db.pitchLink.findMany({ where: { parent: { venueId: venue.id } } }),
     db.deal.findMany({ where: { venueId: venue.id, end: { gt: new Date() } }, orderBy: { start: "asc" } }),
-    user ? db.team.findMany({ where: { members: { some: { userId: user.id, active: true } } }, select: { id: true, name: true } }) : [],
+
   ]);
   // Hôm nay: bắt đầu lưới từ giờ hiện tại (làm tròn xuống 30 phút) thay vì giờ mở cửa
   const firstSlot = date === today ? Math.max(venue.openMin, Math.floor(vnParts(new Date()).minutes / 30) * 30) : venue.openMin;
@@ -98,7 +99,7 @@ export default async function VenuePage({ params, searchParams }: { params: Prom
         </div>
         <div className="flex gap-2">
           <a className="btn-secondary" href={`https://www.google.com/maps/dir/?api=1&destination=${venue.lat},${venue.lng}`} target="_blank" rel="noreferrer">🧭 Chỉ đường</a>
-          {canManage && <Link className="btn-secondary" href={`/chu-san/${venue.id}`}>Quản lý sân</Link>}
+          {canManage && <a className="btn-secondary" href={ownerUrl(`/chu-san/${venue.id}`)}>Quản lý sân ↗</a>}
         </div>
       </div>
 
@@ -195,11 +196,11 @@ export default async function VenuePage({ params, searchParams }: { params: Prom
                 rules={venue.priceRules} holidays={venue.holidays} deals={dealRows}
                 dates={dates.map((d, i) => ({ key: d, label: i === 0 ? `Hôm nay (${formatDateShort(d)})` : formatDateShort(d) }))}
                 openMin={venue.openMin} closeMin={venue.closeMin} depositType={venue.depositType} depositValue={venue.depositValue}
-                teams={teams} loggedIn={!!user} loginHref={`/dang-nhap?next=${encodeURIComponent(`/san/${slug}`)}`}
+                loggedIn={!!user} loginHref={`/dang-nhap?next=${encodeURIComponent(`/san/${slug}`)}`}
                 initial={{ pitchId: sp.pitch, date, start: sp.start ? Number(sp.start) : undefined }}
               />
             ) : <p className="muted">Sân chưa được duyệt nên chưa nhận đặt.</p>}
-            <p className="mt-3 text-xs text-gray-500">Hủy miễn phí trước {venue.cancelHours} giờ. ChọnSân không giữ tiền — cọc chuyển thẳng cho chủ sân.</p>
+            <p className="mt-3 text-xs text-gray-500">Hủy miễn phí trước {venue.cancelHours} giờ. ChonSan không giữ tiền — cọc chuyển thẳng cho chủ sân.</p>
             <p className="mt-1 text-xs text-gray-500">Liên hệ chủ sân: {user ? <a className="font-medium text-brand-700" href={`tel:${venue.phone}`}>{venue.phone}</a> : "đăng nhập để xem"}</p>
           </section>
           {user && (

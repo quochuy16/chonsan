@@ -18,7 +18,7 @@ export default async function AdminLoginPage({ searchParams }: { searchParams: P
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center">
           <span className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-emerald-600 text-2xl">⚽</span>
-          <h1 className="mt-3 text-xl font-bold text-white">Quản trị ChọnSân</h1>
+          <h1 className="mt-3 text-xl font-bold text-white">Quản trị ChonSan</h1>
           <p className="text-sm text-slate-400">Chỉ dành cho tài khoản quản trị viên</p>
         </div>
         <div className="space-y-4 rounded-2xl border border-slate-800 bg-slate-900 p-6">
@@ -40,7 +40,7 @@ export default async function AdminLoginPage({ searchParams }: { searchParams: P
             <SubmitButton className="w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500">Đăng nhập</SubmitButton>
           </form>
         </div>
-        <p className="mt-4 text-center text-xs text-slate-500"><Link href="/" className="hover:text-slate-300">← Về trang ChọnSân</Link></p>
+        <p className="mt-4 text-center text-xs text-slate-500"><Link href="/" className="hover:text-slate-300">← Về trang ChonSan</Link></p>
       </div>
     </div>
   );

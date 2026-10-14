@@ -4,8 +4,11 @@ import { redirect } from "next/navigation";
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
 import { db } from "./db";
+import { OWNER_LOGIN } from "./urls";
 
 const COOKIE = "cs_session";
+// Đặt ".chonsan.vn" khi deploy để web Tìm sân và web Chủ sân dùng chung một lần đăng nhập
+const COOKIE_DOMAIN = process.env.SESSION_COOKIE_DOMAIN || undefined;
 const MAX_AGE = 60 * 60 * 24 * 30;
 
 function secret() {
@@ -34,12 +37,13 @@ export async function createSession(userId: string) {
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
+    domain: COOKIE_DOMAIN,
     maxAge: MAX_AGE,
   });
 }
 
 export async function destroySession() {
-  (await cookies()).delete(COOKIE);
+  (await cookies()).delete({ name: COOKIE, path: "/", domain: COOKIE_DOMAIN });
 }
 
 export const getCurrentUser = cache(async () => {
@@ -64,6 +68,13 @@ export async function requireUser(next = "/"): Promise<CurrentUser> {
   // Đăng ký bằng Google chưa có SĐT → bắt buộc hoàn tất hồ sơ trước khi dùng tính năng cần đăng nhập
   if (!user.phone) redirect(`/tai-khoan/hoan-tat?next=${encodeURIComponent(next)}`);
   return user;
+}
+
+/** Web Chủ sân (/chu-san) có trang đăng nhập riêng; chưa có SĐT vẫn phải hoàn tất hồ sơ như bên Tìm sân. */
+export async function requireOwnerUser(next = "/chu-san"): Promise<CurrentUser> {
+  const user = await getCurrentUser();
+  if (!user) redirect(`${OWNER_LOGIN}?next=${encodeURIComponent(next)}`);
+  return requireUser(next);
 }
 
 export const ADMIN_LOGIN = "/quan-tri/dang-nhap";
