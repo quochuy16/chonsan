@@ -16,7 +16,7 @@ interface Props {
   closeMin: number;
   depositType: string;
   depositValue: number;
-  teams: { id: string; name: string }[];
+
   initial: { pitchId?: string; date: string; start?: number };
   loggedIn: boolean;
   loginHref: string;
@@ -76,13 +76,7 @@ export function BookingForm(p: Props) {
             {[4, 8, 12].map((w) => <option key={w} value={w}>{w} tuần (cố định)</option>)}
           </select>
         </div>
-        <div>
-          <label className="label" htmlFor="teamId">Đặt cho</label>
-          <select id="teamId" name="teamId" className="input" defaultValue="">
-            <option value="">Cá nhân</option>
-            {p.teams.map((t) => <option key={t.id} value={t.id}>Đội {t.name}</option>)}
-          </select>
-        </div>
+
         <div className="col-span-2">
           <label className="label" htmlFor="note">Ghi chú cho chủ sân</label>
           <input id="note" name="note" className="input" placeholder="VD: cần thêm 2 bóng, áo bib" maxLength={200} />

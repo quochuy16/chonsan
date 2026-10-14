@@ -16,7 +16,7 @@ const TARGET: Record<string, { label: string; link?: (id: string) => string }> =
   MATCH_POST: { label: "Bài tìm đối", link: (id) => `/keo/${id}` },
   PLAYER_POST: { label: "Bài tìm người", link: (id) => `/keo/nguoi/${id}` },
   VENUE: { label: "Sân" },
-  TEAM: { label: "Đội" },
+
   USER: { label: "Người dùng", link: (id) => `/quan-tri/nguoi-dung/${id}` },
 };
 

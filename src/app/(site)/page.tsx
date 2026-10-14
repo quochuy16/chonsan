@@ -6,24 +6,25 @@ import { COST_SPLIT, LEVELS, label } from "@/lib/domain/constants";
 import { LOCATIONS } from "@/lib/domain/locations";
 import { formatDateTime } from "@/lib/domain/time";
 import { formatVND } from "@/lib/domain/money";
+import { ownerUrl } from "@/lib/server/urls";
 import { NearMeButton } from "@/components/near-me-button";
 import { VenueCard } from "@/components/venue-card";
 
 export default async function Home() {
   const [venues, matchPosts, playerPosts, stats] = await Promise.all([
     searchVenues({}),
-    db.matchPost.findMany({ where: { status: "OPEN", start: { gt: new Date() } }, include: { team: true }, orderBy: { start: "asc" }, take: 4 }),
+    db.matchPost.findMany({ where: { status: "OPEN", start: { gt: new Date() } }, orderBy: { start: "asc" }, take: 4 }),
     db.playerPost.findMany({ where: { status: "OPEN", start: { gt: new Date() } }, orderBy: { start: "asc" }, take: 4 }),
-    Promise.all([db.venue.count({ where: { status: "APPROVED" } }), db.team.count(), db.booking.count()]),
+    Promise.all([db.venue.count({ where: { status: "APPROVED" } }), db.matchPost.count(), db.booking.count()]),
   ]);
   return (
     <>
       <section className="bg-gradient-to-br from-brand-700 via-brand-600 to-brand-800 text-white">
         <div className="container-page py-12 sm:py-16">
           <p className="mb-2 inline-block rounded-full bg-white/15 px-3 py-1 text-xs font-medium">Bóng đá phủi · sắp có pickleball, cầu lông</p>
-          <h1 className="max-w-2xl text-3xl font-extrabold leading-tight sm:text-5xl">Có sân chưa? Lên ChọnSân.</h1>
+          <h1 className="max-w-2xl text-3xl font-extrabold leading-tight sm:text-5xl">Có sân chưa? Lên ChonSan.</h1>
           <p className="mt-3 max-w-xl text-white/85">
-            Xem giá & giờ trống của sân gần bạn, đặt trong 30 giây. Ghép kèo, tìm người đá ghép và quản lý quỹ đội — không còn lạc trong group Facebook.
+            Xem giá & giờ trống của sân gần bạn, đặt trong 30 giây. Ghép kèo, tìm người đá ghép — không còn lạc trong group Facebook.
           </p>
           <form action="/san" className="mt-6 flex max-w-2xl flex-col gap-2 rounded-2xl bg-white p-2 sm:flex-row">
             <input name="q" placeholder="Tên sân, đường, khu vực…" className="input border-0 text-gray-900 focus:ring-0" />
@@ -31,7 +32,7 @@ export default async function Home() {
           </form>
           <div className="mt-3 flex flex-wrap gap-2"><Suspense><NearMeButton /></Suspense></div>
           <div className="mt-8 grid max-w-md grid-cols-3 gap-4 text-center">
-            {[["Sân", stats[0]], ["Đội bóng", stats[1]], ["Lượt đặt", stats[2]]].map(([l, n]) => (
+            {[["Sân", stats[0]], ["Kèo đã đăng", stats[1]], ["Lượt đặt", stats[2]]].map(([l, n]) => (
               <div key={l as string}><p className="text-2xl font-extrabold">{n as number}</p><p className="text-xs text-white/75">{l as string}</p></div>
             ))}
           </div>
@@ -39,12 +40,12 @@ export default async function Home() {
       </section>
 
       <div className="container-page space-y-10 py-10">
-        <section className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+        <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {[
             { href: "/san", icon: "🏟️", t: "Tìm & đặt sân", d: "Giá theo khung giờ, lịch trống thật" },
             { href: "/keo", icon: "🤝", t: "Ghép kèo", d: "Tìm đối cùng trình độ, có điểm uy tín" },
-            { href: "/doi", icon: "💰", t: "Quỹ đội", d: "Thu chi minh bạch, biết ai còn nợ" },
-            { href: "/chu-san", icon: "📅", t: "Cho chủ sân", d: "Lịch sân thay sổ tay, thống kê doanh thu" },
+
+            { href: ownerUrl(), icon: "📅", t: "Cho chủ sân", d: "Web quản lý riêng: lịch sân thay sổ tay, thống kê doanh thu" },
           ].map((f) => (
             <Link key={f.href} href={f.href} className="card transition hover:border-brand-500">
               <p className="text-2xl">{f.icon}</p><p className="mt-2 font-bold">{f.t}</p><p className="muted">{f.d}</p>
@@ -64,7 +65,7 @@ export default async function Home() {
               {matchPosts.length === 0 && <p className="muted">Chưa có kèo nào.</p>}
               {matchPosts.map((p) => (
                 <Link key={p.id} href={`/keo/${p.id}`} className="card block hover:border-brand-500">
-                  <p className="font-semibold">{p.team.name} <span className="font-normal text-gray-500">tìm đối sân {p.pitchSize}</span></p>
+                  <p className="font-semibold">{p.teamName} <span className="font-normal text-gray-500">tìm đối sân {p.pitchSize}</span></p>
                   <p className="muted">{formatDateTime(p.start)} · {p.venueText} · {p.district}</p>
                   <p className="mt-1 text-xs text-gray-500">{label(LEVELS, p.level)} · {label(COST_SPLIT, p.costSplit)}</p>
                 </Link>

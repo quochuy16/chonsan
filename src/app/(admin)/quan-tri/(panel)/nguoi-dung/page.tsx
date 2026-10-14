@@ -24,7 +24,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
   };
   const [total, users] = await Promise.all([
     db.user.count({ where }),
-    db.user.findMany({ where, orderBy: { createdAt: "desc" }, skip, take, include: { _count: { select: { bookings: true, venues: true, memberships: true } } } }),
+    db.user.findMany({ where, orderBy: { createdAt: "desc" }, skip, take, include: { _count: { select: { bookings: true, venues: true, matchPosts: true } } } }),
   ]);
   const back = currentUrl("/quan-tri/nguoi-dung", sp);
   return (
@@ -45,7 +45,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
             <td className="px-3 py-2.5"><Link href={`/quan-tri/nguoi-dung/${u.id}`} className="font-medium text-slate-900 hover:underline">{u.name}</Link>{u.role === "ADMIN" && <> <Pill tone="amber">Admin</Pill></>}<p className="text-xs text-slate-500">{u.email}</p></td>
             <td className="px-3 py-2.5 whitespace-nowrap">{u.phone || <span className="text-slate-400">—</span>}</td>
             <td className="px-3 py-2.5">{u.googleId ? <Pill tone="blue">Google</Pill> : null} {u.passwordHash ? <Pill>Mật khẩu</Pill> : null}</td>
-            <td className="px-3 py-2.5 text-xs whitespace-nowrap text-slate-600">{u._count.bookings} đơn · {u._count.memberships} đội · {u._count.venues} sân</td>
+            <td className="px-3 py-2.5 text-xs whitespace-nowrap text-slate-600">{u._count.bookings} đơn · {u._count.matchPosts} kèo · {u._count.venues} sân</td>
             <td className="px-3 py-2.5 whitespace-nowrap text-slate-600">{vnDateKey(u.createdAt)}</td>
             <td className="px-3 py-2.5">{u.banned ? <Pill tone="red">Bị khóa</Pill> : <Pill tone="green">Hoạt động</Pill>}</td>
             <td className="px-3 py-2.5 text-right whitespace-nowrap">

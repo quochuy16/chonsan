@@ -5,7 +5,7 @@ export async function register() {
   const { runScheduledJobs } = await import("./lib/server/jobs");
   const tick = () =>
     runScheduledJobs()
-      .then((r) => { if (r.expired || r.bookingReminders || r.eventReminders) console.log("[jobs]", r); })
+      .then((r) => { if (r.expired || r.bookingReminders) console.log("[jobs]", r); })
       .catch((e) => console.error("[jobs]", e));
   setTimeout(tick, 10_000);
   setInterval(tick, 5 * 60_000);

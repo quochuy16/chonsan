@@ -11,7 +11,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
   return (
     <div className="container-page max-w-md py-10">
       <h1 className="h1 mb-1">Tạo tài khoản</h1>
-      <p className="muted mb-6">Một tài khoản dùng cho cả đặt sân, đội bóng và quản lý sân.</p>
+      <p className="muted mb-6">Một tài khoản dùng cho cả đặt sân, ghép kèo và quản lý sân.</p>
       <Flash searchParams={sp} />
       <form action={registerAction} className="card space-y-4">
         <input type="hidden" name="next" value={sp.next ?? "/"} />
@@ -35,7 +35,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
         </div>
         <label className="flex items-start gap-2 text-sm text-gray-600">
           <input type="checkbox" name="agree" required className="mt-1" />
-          <span>Tôi đồng ý với <Link href="/chinh-sach" className="text-brand-700 underline">chính sách quyền riêng tư</Link> và cho phép ChọnSân xử lý dữ liệu cá nhân để cung cấp dịch vụ.</span>
+          <span>Tôi đồng ý với <Link href="/chinh-sach" className="text-brand-700 underline">chính sách quyền riêng tư</Link> và cho phép ChonSan xử lý dữ liệu cá nhân để cung cấp dịch vụ.</span>
         </label>
         <SubmitButton className="btn-primary w-full">Đăng ký</SubmitButton>
         <p className="muted text-center">

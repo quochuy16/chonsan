@@ -1,5 +1,5 @@
 // Khu vực tìm sân. Từ 07/2025 Việt Nam bỏ cấp quận/huyện, nhưng người chơi vẫn gọi sân theo
-// tên quận cũ ("sân Cầu Giấy"), nên ChọnSân dùng các tên này làm "khu vực" để tìm kiếm.
+// tên quận cũ ("sân Cầu Giấy"), nên ChonSan dùng các tên này làm "khu vực" để tìm kiếm.
 export const LOCATIONS: Record<string, { lat: number; lng: number; areas: string[] }> = {
   "Hà Nội": {
     lat: 21.0285,

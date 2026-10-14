@@ -6,7 +6,7 @@ import { addDays, formatDateShort, formatDateTime, fromVN, todayKey, vnDateKey }
 import { BarList } from "@/components/ui";
 import { Metric, PageHeader, Panel, Pill } from "../_components/ui";
 
-export const metadata = { title: { absolute: "Tổng quan · Quản trị ChọnSân" } };
+export const metadata = { title: { absolute: "Tổng quan · Quản trị ChonSan" } };
 
 export default async function AdminDashboard() {
   await requireAdmin();
@@ -15,7 +15,7 @@ export default async function AdminDashboard() {
   const d7 = new Date(Date.now() - 7 * 86400_000);
   const from14 = addDays(today, -13);
   const from30 = fromVN(addDays(today, -29), 0);
-  const [users, newUsers, venues, pendingVenues, bookingsToday, bookings14, gmv, teams, openPosts, openReports, latestUsers, pendingList, latestBookings] = await Promise.all([
+  const [users, newUsers, venues, pendingVenues, bookingsToday, bookings14, gmv, matchedPosts, openPosts, openReports, latestUsers, pendingList, latestBookings] = await Promise.all([
     db.user.count(),
     db.user.count({ where: { createdAt: { gte: d7 } } }),
     db.venue.count({ where: { status: "APPROVED" } }),
@@ -23,7 +23,7 @@ export default async function AdminDashboard() {
     db.booking.count({ where: { status: { in: ["PENDING", "CONFIRMED", "COMPLETED"] }, start: { gte: dayStart, lt: fromVN(today, 1440) } } }),
     db.booking.findMany({ where: { status: { in: ["CONFIRMED", "COMPLETED"] }, start: { gte: fromVN(from14, 0), lt: fromVN(today, 1440) } }, select: { start: true } }),
     db.booking.aggregate({ _sum: { totalPrice: true }, where: { status: { in: ["CONFIRMED", "COMPLETED"] }, start: { gte: from30 } } }),
-    db.team.count(),
+    db.matchPost.count({ where: { status: "MATCHED" } }),
     db.matchPost.count({ where: { status: "OPEN", start: { gt: new Date() } } }),
     db.report.count({ where: { status: "OPEN" } }),
     db.user.findMany({ orderBy: { createdAt: "desc" }, take: 6, select: { id: true, name: true, email: true, createdAt: true, googleId: true, role: true } }),
@@ -42,7 +42,7 @@ export default async function AdminDashboard() {
         <Metric label="Sân hoạt động" value={venues} hint={pendingVenues ? `${pendingVenues} sân chờ duyệt` : "Không có sân chờ duyệt"} href="/quan-tri/san" />
         <Metric label="Đơn hôm nay" value={bookingsToday} href="/quan-tri/dat-san" />
         <Metric label="Giá trị đặt sân 30 ngày" value={formatVND(gmv._sum.totalPrice ?? 0)} hint="Tiền khách trả thẳng cho chủ sân" />
-        <Metric label="Đội bóng" value={teams} href="/quan-tri/doi" />
+        <Metric label="Kèo đã chốt" value={matchedPosts} href="/quan-tri/keo?status=MATCHED" />
         <Metric label="Kèo đang mở" value={openPosts} href="/quan-tri/keo" />
         <Metric label="Báo cáo chờ xử lý" value={openReports} href="/quan-tri/bao-cao" />
         <Metric label="Lượt đặt 14 ngày" value={bookings14.length} />

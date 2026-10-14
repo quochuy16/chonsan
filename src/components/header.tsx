@@ -2,12 +2,11 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/server/auth";
 import { db } from "@/lib/server/db";
 import { logoutAction } from "@/app/(site)/(auth)/actions";
+import { ownerUrl } from "@/lib/server/urls";
 
 const NAV = [
   { href: "/san", label: "Tìm sân", icon: "🏟️" },
   { href: "/keo", label: "Kèo", icon: "🤝" },
-  { href: "/doi", label: "Đội của tôi", icon: "👕" },
-  { href: "/chu-san", label: "Chủ sân", icon: "📅" },
 ];
 
 export async function Header() {
@@ -19,7 +18,7 @@ export async function Header() {
         <div className="container-page flex h-14 items-center gap-4">
           <Link href="/" className="flex items-center gap-1.5 text-lg font-extrabold text-brand-700">
             <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand-600 text-white">⚽</span>
-            ChọnSân
+            ChonSan
           </Link>
           <nav className="hidden flex-1 items-center gap-1 sm:flex">
             {NAV.map((n) => (
@@ -27,6 +26,8 @@ export async function Header() {
                 {n.label}
               </Link>
             ))}
+            {/* Web Chủ sân là nền tảng riêng (OWNER_URL) */}
+            <a href={ownerUrl()} className="btn-ghost btn-sm">Cho chủ sân ↗</a>
           </nav>
           <div className="ml-auto flex items-center gap-2">
             {user ? (
@@ -56,12 +57,16 @@ export async function Header() {
         </div>
       </header>
       <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-gray-200 bg-white sm:hidden">
-        {NAV.map((n) => (
+        {[...NAV, { href: user ? "/tai-khoan" : "/dang-nhap", label: user ? "Tài khoản" : "Đăng nhập", icon: "👤" }].map((n) => (
           <Link key={n.href} href={n.href} className="flex flex-col items-center py-2 text-[11px] text-gray-600">
             <span className="text-lg leading-none">{n.icon}</span>
             {n.label}
           </Link>
         ))}
+        <a href={ownerUrl()} className="flex flex-col items-center py-2 text-[11px] text-gray-600">
+          <span className="text-lg leading-none">📅</span>
+          Chủ sân
+        </a>
       </nav>
     </>
   );

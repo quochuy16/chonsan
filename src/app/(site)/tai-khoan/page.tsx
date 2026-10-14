@@ -84,7 +84,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
           <details className="card text-sm">
             <summary className="cursor-pointer text-gray-500">Xóa tài khoản</summary>
             <form action={deleteAccountAction} className="mt-3 space-y-2">
-              <p className="text-gray-600">Dữ liệu cá nhân (tên, email, SĐT) sẽ bị xóa. Lịch sử thu chi của đội vẫn giữ dưới tên ẩn danh để đội đối chiếu.</p>
+              <p className="text-gray-600">Dữ liệu cá nhân (tên, email, SĐT) sẽ bị xóa. Lịch sử đặt sân và bài kèo vẫn giữ dưới tên ẩn danh.</p>
               <input name="confirm" className="input" placeholder='Gõ "XOA" để xác nhận' />
               <SubmitButton className="btn-danger" confirm="Xóa vĩnh viễn tài khoản?">Xóa tài khoản</SubmitButton>
             </form>

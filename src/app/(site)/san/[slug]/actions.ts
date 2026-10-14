@@ -17,7 +17,7 @@ export async function createBookingAction(slug: string, form: FormData) {
   const startMin = int(form, "startMin", -1);
   const duration = int(form, "duration");
   const weeks = Math.min(12, Math.max(1, int(form, "weeks", 1)));
-  const teamId = str(form, "teamId") || null;
+
   const note = str(form, "note").slice(0, 200);
 
   const pitch = await db.pitch.findUnique({ where: { id: pitchId }, include: { venue: true } });
@@ -28,10 +28,7 @@ export async function createBookingAction(slug: string, form: FormData) {
   if (startMin < venue.openMin || startMin + duration > venue.closeMin)
     fail(back, `Sân mở ${minutesToHHMM(venue.openMin)}–${minutesToHHMM(venue.closeMin)}`);
   if (fromVN(date, startMin) <= new Date()) fail(back, "Không thể đặt giờ đã qua");
-  if (teamId) {
-    const member = await db.teamMember.findFirst({ where: { teamId, userId: user.id, active: true } });
-    if (!member) fail(back, "Bạn không thuộc đội này");
-  }
+
 
   const recurringId = weeks > 1 ? `R${randomCode(8)}` : null;
   const items: NewBooking[] = [];
@@ -40,7 +37,7 @@ export async function createBookingAction(slug: string, form: FormData) {
     const { quote } = await quoteForPitch(pitchId, d, startMin, startMin + duration);
     if (!quote.ok) fail(back, `Chưa có giá cho ngày ${formatDateShort(d)} lúc ${minutesToHHMM(quote.unpricedAt ?? startMin)}`);
     items.push({
-      pitchId, userId: user.id, teamId, customerName: user.name, customerPhone: user.phone,
+      pitchId, userId: user.id, customerName: user.name, customerPhone: user.phone,
       start: fromVN(d, startMin), end: fromVN(d, startMin + duration),
       totalPrice: quote.total, depositAmount: depositFor(quote.total, venue.depositType, venue.depositValue),
       status: venue.autoConfirm ? "CONFIRMED" : "PENDING", source: "ONLINE", note, recurringId,

@@ -4,7 +4,8 @@ import { db } from "@/lib/server/db";
 import { requireAdmin } from "@/lib/server/auth";
 import { Flash } from "@/components/flash";
 import { BookingStatusBadge } from "@/components/ui";
-import { LEVELS, TEAM_ROLES, label } from "@/lib/domain/constants";
+import { LEVELS, label } from "@/lib/domain/constants";
+import { computeReputation } from "@/lib/domain/reputation";
 import { formatVND } from "@/lib/domain/money";
 import { formatDateTime, vnDateKey } from "@/lib/domain/time";
 import { ActionButton } from "../../../_components/admin-form";
@@ -21,11 +22,12 @@ export default async function UserDetail({ params, searchParams }: { params: Pro
     where: { id },
     include: {
       venues: { select: { id: true, name: true, status: true, plan: true } },
-      memberships: { where: { active: true }, include: { team: { select: { name: true, slug: true } } } },
+      ratingsReceived: true,
       bookings: { orderBy: { start: "desc" }, take: 15, include: { pitch: { include: { venue: { select: { name: true } } } } } },
     },
   });
   if (!u) notFound();
+  const rep = computeReputation(u.ratingsReceived);
   const [stats, reportsAgainst] = await Promise.all([
     db.booking.groupBy({ by: ["status"], where: { userId: id }, _count: true }),
     db.report.count({ where: { targetType: "USER", targetId: id } }),
@@ -70,11 +72,11 @@ export default async function UserDetail({ params, searchParams }: { params: Pro
             <dt className="text-slate-500">Bùng</dt><dd className={count("NO_SHOW") ? "font-semibold text-red-600" : ""}>{count("NO_SHOW")}</dd>
           </dl>
         </Panel>
-        <Panel title="Sân & đội">
+        <Panel title="Sân & uy tín kèo">
           <p className="mb-1 text-xs font-semibold text-slate-500 uppercase">Sân sở hữu</p>
           {u.venues.length === 0 ? <p className="mb-3 text-sm text-slate-400">Không có</p> : <ul className="mb-3 space-y-1 text-sm">{u.venues.map((v) => <li key={v.id}>{v.name} <Pill>{v.status}</Pill> {v.plan === "PRO" && <Pill tone="blue">Pro</Pill>}</li>)}</ul>}
-          <p className="mb-1 text-xs font-semibold text-slate-500 uppercase">Đội</p>
-          {u.memberships.length === 0 ? <p className="text-sm text-slate-400">Không có</p> : <ul className="space-y-1 text-sm">{u.memberships.map((m) => <li key={m.id}>{m.team.name} <span className="text-xs text-slate-500">({label(TEAM_ROLES, m.role)})</span></li>)}</ul>}
+          <p className="mb-1 text-xs font-semibold text-slate-500 uppercase">Uy tín kèo</p>
+          {rep.count === 0 ? <p className="text-sm text-slate-400">Chưa có đánh giá</p> : <p className="text-sm">{rep.score}/5 · {rep.count} đánh giá{rep.noShows > 0 && <> · <span className="font-semibold text-red-600">{rep.noShows} lần bùng</span></>}</p>}
         </Panel>
       </div>
       <div className="mt-5">
