@@ -1,0 +1,407 @@
+// ChọnSân — schema. Enum lưu dạng String (SQLite); giá trị hợp lệ ở src/lib/domain/constants.ts
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String // "" = tài khoản chỉ đăng nhập bằng Google
+  googleId     String?  @unique
+  name         String
+  phone        String
+  role         String   @default("USER") // USER | ADMIN
+  province     String?
+  district     String?
+  skillLevel   String?
+  position     String?
+  banned       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  venues         Venue[]
+  staffOf        VenueStaff[]
+  bookings       Booking[]
+  reviews        Review[]
+  notifications  Notification[]
+  memberships    TeamMember[]
+  matchPosts     MatchPost[]
+  playerPosts    PlayerPost[]
+  playerRequests PlayerRequest[]
+  reports        Report[]
+}
+
+model Venue {
+  id               String   @id @default(cuid())
+  slug             String   @unique
+  ownerId          String
+  owner            User     @relation(fields: [ownerId], references: [id])
+  name             String
+  address          String
+  province         String
+  district         String
+  lat              Float
+  lng              Float
+  description      String   @default("")
+  imageUrl         String?
+  phone            String
+  openMin          Int      @default(300) // 05:00
+  closeMin         Int      @default(1380) // 23:00
+  amenities        String   @default("") // CSV: PARKING,WATER,...
+  bankBin          String?
+  bankAccount      String?
+  bankAccountName  String?
+  status           String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  verified         Boolean  @default(false)
+  plan             String   @default("FREE") // FREE | PRO
+  autoConfirm      Boolean  @default(false)
+  depositType      String   @default("NONE") // NONE | FIXED | PERCENT
+  depositValue     Int      @default(0)
+  cancelHours      Int      @default(12)
+  /// Đơn online chờ xác nhận quá số phút này thì tự hủy để nhả giờ (0 = không tự hủy)
+  pendingExpireMin Int      @default(120)
+  createdAt        DateTime @default(now())
+
+  pitches    Pitch[]
+  priceRules PriceRule[]
+  holidays   VenueHoliday[]
+  deals      Deal[]
+  staff      VenueStaff[]
+  reviews    Review[]
+}
+
+model VenueStaff {
+  id      String @id @default(cuid())
+  venueId String
+  venue   Venue  @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([venueId, userId])
+}
+
+model Pitch {
+  id        String  @id @default(cuid())
+  venueId   String
+  venue     Venue   @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  name      String
+  sport     String  @default("FOOTBALL")
+  size      String  @default("5") // 5 | 7 | 11 (bóng đá)
+  surface   String  @default("ARTIFICIAL")
+  covered   Boolean @default(false)
+  active    Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  bookings   Booking[]
+  priceRules PriceRule[]
+  parentOf   PitchLink[] @relation("parent")
+  childOf    PitchLink[] @relation("child")
+}
+
+// Sân ghép: parent (vd sân 7) chiếm chỗ của child (các sân 5)
+model PitchLink {
+  id       String @id @default(cuid())
+  parentId String
+  parent   Pitch  @relation("parent", fields: [parentId], references: [id], onDelete: Cascade)
+  childId  String
+  child    Pitch  @relation("child", fields: [childId], references: [id], onDelete: Cascade)
+
+  @@unique([parentId, childId])
+}
+
+model PriceRule {
+  id           String  @id @default(cuid())
+  venueId      String
+  venue        Venue   @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  pitchId      String?
+  pitch        Pitch?  @relation(fields: [pitchId], references: [id], onDelete: Cascade)
+  daysOfWeek   String // CSV 0..6, 0 = Chủ nhật
+  startMin     Int
+  endMin       Int
+  pricePerHour Int
+}
+
+model VenueHoliday {
+  id      String @id @default(cuid())
+  venueId String
+  venue   Venue  @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  date    String // YYYY-MM-DD giờ VN
+  name    String @default("")
+  percent Int    @default(120)
+
+  @@unique([venueId, date])
+}
+
+// Giờ trống giảm giá
+model Deal {
+  id        String   @id @default(cuid())
+  venueId   String
+  venue     Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  start     DateTime
+  end       DateTime
+  percent   Int
+  createdAt DateTime @default(now())
+}
+
+model Booking {
+  id             String    @id @default(cuid())
+  code           String    @unique
+  pitchId        String
+  pitch          Pitch     @relation(fields: [pitchId], references: [id], onDelete: Cascade)
+  userId         String?
+  user           User?     @relation(fields: [userId], references: [id])
+  teamId         String?
+  team           Team?     @relation(fields: [teamId], references: [id])
+  customerName   String
+  customerPhone  String
+  start          DateTime
+  end            DateTime
+  totalPrice     Int
+  depositAmount  Int       @default(0)
+  depositPaid    Boolean   @default(false)
+  status         String    @default("PENDING") // PENDING | CONFIRMED | COMPLETED | CANCELLED | NO_SHOW | BLOCKED
+  source         String    @default("ONLINE") // ONLINE | MANUAL | BLOCK
+  note           String    @default("")
+  recurringId    String?
+  reminderSentAt DateTime?
+  createdAt      DateTime  @default(now())
+  cancelledAt    DateTime?
+
+  review Review?
+
+  @@index([pitchId, start])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  venueId   String
+  venue     Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  bookingId String   @unique
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  rating    Int
+  comment   String   @default("")
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String   @default("")
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Team {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  name            String
+  sport           String   @default("FOOTBALL")
+  province        String
+  district        String
+  level           String   @default("TRUNG_BINH")
+  homeVenue       String   @default("")
+  description     String   @default("")
+  inviteCode      String   @unique
+  isPublic        Boolean  @default(true)
+  monthlyFee      Int      @default(0)
+  bankBin         String?
+  bankAccount     String?
+  bankAccountName String?
+  createdAt       DateTime @default(now())
+
+  members         TeamMember[]
+  events          TeamEvent[]
+  transactions    FundTransaction[]
+  auditLogs       FundAuditLog[]
+  bookings        Booking[]
+  matchPosts      MatchPost[]       @relation("hostTeam")
+  matchRequests   MatchRequest[]
+  playerPosts     PlayerPost[]
+  ratingsGiven    TeamRating[]      @relation("fromTeam")
+  ratingsReceived TeamRating[]      @relation("toTeam")
+}
+
+model TeamMember {
+  id          String   @id @default(cuid())
+  teamId      String
+  team        Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  displayName String
+  role        String   @default("MEMBER") // CAPTAIN | TREASURER | MEMBER
+  jerseyNo    Int?
+  active      Boolean  @default(true)
+  joinedAt    DateTime @default(now())
+
+  attendances  Attendance[]
+  transactions FundTransaction[]
+
+  @@unique([teamId, userId])
+}
+
+model TeamEvent {
+  id             String    @id @default(cuid())
+  teamId         String
+  team           Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  title          String
+  start          DateTime
+  venueText      String    @default("")
+  opponent       String    @default("")
+  cost           Int       @default(0)
+  scoreFor       Int?
+  scoreAgainst   Int?
+  finished       Boolean   @default(false)
+  chargesIssued  Boolean   @default(false)
+  reminderSentAt DateTime?
+  createdAt      DateTime  @default(now())
+
+  attendances Attendance[]
+}
+
+model Attendance {
+  id       String     @id @default(cuid())
+  eventId  String
+  event    TeamEvent  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  memberId String
+  member   TeamMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  response String     @default("MAYBE") // YES | NO | MAYBE
+  attended Boolean    @default(false)
+  goals    Int        @default(0)
+  assists  Int        @default(0)
+
+  @@unique([eventId, memberId])
+}
+
+model FundTransaction {
+  id          String      @id @default(cuid())
+  teamId      String
+  team        Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  kind        String // CHARGE | PAYMENT | EXPENSE | INCOME
+  category    String      @default("OTHER")
+  memberId    String?
+  member      TeamMember? @relation(fields: [memberId], references: [id])
+  amount      Int
+  note        String      @default("")
+  date        DateTime    @default(now())
+  eventId     String?
+  createdById String
+  deletedAt   DateTime?
+  createdAt   DateTime    @default(now())
+}
+
+model FundAuditLog {
+  id        String   @id @default(cuid())
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  actorName String
+  action    String
+  detail    String
+  createdAt DateTime @default(now())
+}
+
+model MatchPost {
+  id        String   @id @default(cuid())
+  teamId    String
+  team      Team     @relation("hostTeam", fields: [teamId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  start     DateTime
+  venueText String
+  pitchSize String   @default("7")
+  province  String
+  district  String
+  level     String   @default("TRUNG_BINH")
+  costSplit String   @default("HALF") // HALF | HOST | GUEST
+  note      String   @default("")
+  status    String   @default("OPEN") // OPEN | MATCHED | CANCELLED | HIDDEN
+  createdAt DateTime @default(now())
+
+  requests MatchRequest[]
+  ratings  TeamRating[]
+}
+
+model MatchRequest {
+  id        String    @id @default(cuid())
+  postId    String
+  post      MatchPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  teamId    String
+  team      Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  message   String    @default("")
+  status    String    @default("PENDING") // PENDING | ACCEPTED | REJECTED
+  createdAt DateTime  @default(now())
+
+  @@unique([postId, teamId])
+}
+
+model TeamRating {
+  id          String    @id @default(cuid())
+  matchPostId String
+  matchPost   MatchPost @relation(fields: [matchPostId], references: [id], onDelete: Cascade)
+  fromTeamId  String
+  fromTeam    Team      @relation("fromTeam", fields: [fromTeamId], references: [id], onDelete: Cascade)
+  toTeamId    String
+  toTeam      Team      @relation("toTeam", fields: [toTeamId], references: [id], onDelete: Cascade)
+  punctual    Int
+  fairplay    Int
+  levelMatch  Int
+  noShow      Boolean   @default(false)
+  comment     String    @default("")
+  createdAt   DateTime  @default(now())
+
+  @@unique([matchPostId, fromTeamId])
+}
+
+model PlayerPost {
+  id           String   @id @default(cuid())
+  authorId     String
+  author       User     @relation(fields: [authorId], references: [id])
+  teamId       String?
+  team         Team?    @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  start        DateTime
+  venueText    String
+  province     String
+  district     String
+  needed       Int
+  position     String   @default("")
+  feePerPerson Int      @default(0)
+  level        String   @default("TRUNG_BINH")
+  note         String   @default("")
+  status       String   @default("OPEN") // OPEN | FULL | CANCELLED | HIDDEN
+  createdAt    DateTime @default(now())
+
+  requests PlayerRequest[]
+}
+
+model PlayerRequest {
+  id        String     @id @default(cuid())
+  postId    String
+  post      PlayerPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message   String     @default("")
+  status    String     @default("PENDING") // PENDING | ACCEPTED | REJECTED
+  createdAt DateTime   @default(now())
+
+  @@unique([postId, userId])
+}
+
+model Report {
+  id         String   @id @default(cuid())
+  reporterId String
+  reporter   User     @relation(fields: [reporterId], references: [id])
+  targetType String // VENUE | TEAM | MATCH_POST | PLAYER_POST | USER
+  targetId   String
+  reason     String // BETTING | CHEATING | FRAUD | NO_SHOW | OTHER
+  detail     String   @default("")
+  status     String   @default("OPEN") // OPEN | RESOLVED | DISMISSED
+  createdAt  DateTime @default(now())
+}
